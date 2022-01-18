@@ -1,22 +1,21 @@
 package part2actors
 
-import akka.NotUsed
 import akka.actor.typed.{ActorRef, ActorSystem, Behavior}
 import akka.actor.typed.scaladsl.Behaviors
 
 object ChildActors {
 
   /*
-    actors can create other actors (children): parent -> child -> grandChild -> ...
-                                                      -> child2 -> ...
-    actor hierarchy = tree-like structure
-    root of the hierarchy = "guardian" actor (created with the ActorSystem)
-    actors can be identified via a path: /user/parent/child/grandChild/
-    ActorSystem creates
+    - actors can create other actors (children): parent -> child -> grandChild -> ...
+                                                        -> child2 -> ...
+    - actor hierarchy = tree-like structure
+    - root of the hierarchy = "guardian" actor (created with the ActorSystem)
+    - actors can be identified via a path: /user/parent/child/grandChild/
+    - ActorSystem creates
       - the top-level (root) guardian, with children
         - system guardian (for Akka internal messages)
         - user guardian (for our custom actors)
-    ALL OUR ACTORS are child actors of the user guardian
+    - ALL OUR ACTORS are child actors of the user guardian
    */
 
   object Parent {
