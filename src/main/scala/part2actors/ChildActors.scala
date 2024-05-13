@@ -1,7 +1,7 @@
 package part2actors
 
 import akka.actor.typed.{ActorRef, ActorSystem, Behavior, Terminated}
-import akka.actor.typed.scaladsl.Behaviors
+import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
 
 object ChildActors {
 
@@ -27,7 +27,7 @@ object ChildActors {
 
     def apply(): Behavior[Command] = idle()
 
-    def idle(): Behavior[Command] = Behaviors.receive { (context, message) =>
+    def idle(): Behavior[Command] = Behaviors.receive[Command] { (context, message) =>
       message match {
         case CreateChild(name) =>
           context.log.info(s"[parent] Creating child with name $name")
@@ -35,6 +35,9 @@ object ChildActors {
           val childRef: ActorRef[String] = context.spawn(Child(), name)
           active(childRef)
       }
+    }
+    .receiveSignal {
+      case(context, Terminated(childRefWhichDied)) => handleTermination(context, childRefWhichDied)
     }
 
     def active(childRef: ActorRef[String]): Behavior[Command] = Behaviors.receive[Command] { (context, message) =>
@@ -57,9 +60,12 @@ object ChildActors {
       }
     }
     .receiveSignal {
-      case (context, Terminated(childRefWhichDied)) =>
-        context.log.info(s"[parent] Child ${childRefWhichDied.path} was killed by something...")
-        idle()
+      case (context, Terminated(childRefWhichDied)) => handleTermination(context, childRefWhichDied)
+    }
+
+    private def handleTermination(context: ActorContext[_], childRefWhichDied: ActorRef[_]): Behavior[Command] = {
+      context.log.info(s"[parent] Child ${childRefWhichDied.path} was killed by something...")
+      idle()
     }
   }
 
